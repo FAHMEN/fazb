@@ -48,13 +48,13 @@ const { GroupUpdate, GroupParticipantsUpdate, MessagesUpsert, Solving } = requir
 const { isUrl, generateMessageTag, getBuffer, getSizeMedia, fetchJson, sleep } = require('./lib/function');
 
 /*
-	* Create By Naze
-	* Follow https://github.com/nazedev
+	* Create By faz
+	* Follow https://github.com/fazdev
 	* Whatsapp : https://whatsapp.com/channel/0029VaWOkNm7DAWtkvkJBK43
 */
 
-async function startNazeBot() {
-	const { state, saveCreds } = await useMultiFileAuthState('nazedev');
+async function startfazbot() {
+	const { state, saveCreds } = await useMultiFileAuthState('fazdev');
 	const { version, isLatest } = await fetchLatestBaileysVersion();
 	const level = pino({ level: 'silent' })
 	
@@ -64,11 +64,11 @@ async function startNazeBot() {
 			return msg?.message || ''
 		}
 		return {
-			conversation: 'Halo Saya Naze Bot'
+			conversation: 'Halo Saya faz Bot'
 		}
 	}
 	
-	const naze = WAConnection({
+	const faz = WAConnection({
 		//version,
 		isLatest,
 		logger: level,
@@ -95,7 +95,7 @@ async function startNazeBot() {
 		},
 	})
 	
-	if (pairingCode && !naze.authState.creds.registered) {
+	if (pairingCode && !faz.authState.creds.registered) {
 		let phoneNumber;
 		async function getPhoneNumber() {
 			phoneNumber = await question('Please type your WhatsApp number : ');
@@ -109,59 +109,59 @@ async function startNazeBot() {
 		
 		setTimeout(async () => {
 			await getPhoneNumber()
-			await exec('rm -rf ./nazedev/*')
-			let code = await naze.requestPairingCode(phoneNumber);
+			await exec('rm -rf ./fazdev/*')
+			let code = await faz.requestPairingCode(phoneNumber);
 			console.log(`Your Pairing Code : ${code}`);
 		}, 3000)
 	}
 	
-	store.bind(naze.ev)
+	store.bind(faz.ev)
 	
-	await Solving(naze, store)
+	await Solving(faz, store)
 	
-	naze.ev.on('creds.update', saveCreds)
+	faz.ev.on('creds.update', saveCreds)
 	
-	naze.ev.on('connection.update', async (update) => {
+	faz.ev.on('connection.update', async (update) => {
 		const { connection, lastDisconnect, receivedPendingNotifications } = update
 		if (connection === 'close') {
 			const reason = new Boom(lastDisconnect?.error)?.output.statusCode
 			if (reason === DisconnectReason.connectionLost) {
 				console.log('Connection to Server Lost, Attempting to Reconnect...');
-				startNazeBot()
+				startfazbot()
 			} else if (reason === DisconnectReason.connectionClosed) {
 				console.log('Connection closed, Attempting to Reconnect...');
-				startNazeBot()
+				startfazbot()
 			} else if (reason === DisconnectReason.restartRequired) {
 				console.log('Restart Required...');
-				startNazeBot()
+				startfazbot()
 			} else if (reason === DisconnectReason.timedOut) {
 				console.log('Connection Timed Out, Attempting to Reconnect...');
-				startNazeBot()
+				startfazbot()
 			} else if (reason === DisconnectReason.badSession) {
 				console.log('Delete Session and Scan again...');
-				startNazeBot()
+				startfazbot()
 			} else if (reason === DisconnectReason.connectionReplaced) {
 				console.log('Close current Session first...');
-				startNazeBot()
+				startfazbot()
 			} else if (reason === DisconnectReason.loggedOut) {
 				console.log('Scan again and Run...');
-				exec('rm -rf ./nazedev/*')
+				exec('rm -rf ./fazdev/*')
 				process.exit(1)
 			} else if (reason === DisconnectReason.Multidevicemismatch) {
 				console.log('Scan again...');
-				exec('rm -rf ./nazedev/*')
+				exec('rm -rf ./fazdev/*')
 				process.exit(0)
 			} else {
-				naze.end(`Unknown DisconnectReason : ${reason}|${connection}`)
+				faz.end(`Unknown DisconnectReason : ${reason}|${connection}`)
 			}
 		}
 		if (connection == 'open') {
-			console.log('Connected to : ' + JSON.stringify(naze.user, null, 2));
-			let botNumber = await naze.decodeJid(naze.user.id);
+			console.log('Connected to : ' + JSON.stringify(faz.user, null, 2));
+			let botNumber = await faz.decodeJid(faz.user.id);
 			if (db.set[botNumber] && !db.set[botNumber]?.join) {
 				if (global.my.gc.length > 0 && global.my.gc.includes('whatsapp.com')) {
-					await naze.groupAcceptInvite(global.my.gc?.split('https://chat.whatsapp.com/')[1]).then(async grupnya => {
-						await naze.chatModify({ archive: true }, grupnya, [])
+					await faz.groupAcceptInvite(global.my.gc?.split('https://chat.whatsapp.com/')[1]).then(async grupnya => {
+						await faz.chatModify({ archive: true }, grupnya, [])
 						db.set[botNumber].join = true
 					});
 				}
@@ -169,46 +169,46 @@ async function startNazeBot() {
 		}
 		if (receivedPendingNotifications == 'true') {
 			console.log('Please wait About 1 Minute...')
-			naze.ev.flush()
+			faz.ev.flush()
 		}
 	});
 	
-	naze.ev.on('contacts.update', (update) => {
+	faz.ev.on('contacts.update', (update) => {
 		for (let contact of update) {
-			let id = naze.decodeJid(contact.id)
+			let id = faz.decodeJid(contact.id)
 			if (store && store.contacts) store.contacts[id] = { id, name: contact.notify }
 		}
 	});
 	
-	naze.ev.on('call', async (call) => {
-		let botNumber = await naze.decodeJid(naze.user.id);
+	faz.ev.on('call', async (call) => {
+		let botNumber = await faz.decodeJid(faz.user.id);
 		if (db.set[botNumber].anticall) {
 			for (let id of call) {
 				if (id.status === 'offer') {
-					let msg = await naze.sendMessage(id.from, { text: `Saat Ini, Kami Tidak Dapat Menerima Panggilan ${id.isVideo ? 'Video' : 'Suara'}.\nJika @${id.from.split('@')[0]} Memerlukan Bantuan, Silakan Hubungi Owner :)`, mentions: [id.from]});
-					await naze.sendContact(id.from, global.owner, msg);
-					await naze.rejectCall(id.id, id.from)
+					let msg = await faz.sendMessage(id.from, { text: `Saat Ini, Kami Tidak Dapat Menerima Panggilan ${id.isVideo ? 'Video' : 'Suara'}.\nJika @${id.from.split('@')[0]} Memerlukan Bantuan, Silakan Hubungi Owner :)`, mentions: [id.from]});
+					await faz.sendContact(id.from, global.owner, msg);
+					await faz.rejectCall(id.id, id.from)
 				}
 			}
 		}
 	});
 	
-	naze.ev.on('groups.update', async (update) => {
-		await GroupUpdate(naze, update, store);
+	faz.ev.on('groups.update', async (update) => {
+		await GroupUpdate(faz, update, store);
 	});
 	
-	naze.ev.on('group-participants.update', async (update) => {
-		await GroupParticipantsUpdate(naze, update, store);
+	faz.ev.on('group-participants.update', async (update) => {
+		await GroupParticipantsUpdate(faz, update, store);
 	});
 	
-	naze.ev.on('messages.upsert', async (message) => {
-		await MessagesUpsert(naze, message, store);
+	faz.ev.on('messages.upsert', async (message) => {
+		await MessagesUpsert(faz, message, store);
 	});
 
-	return naze
+	return faz
 }
 
-startNazeBot()
+startfazbot()
 
 let file = require.resolve(__filename)
 fs.watchFile(file, () => {
