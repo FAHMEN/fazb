@@ -1081,7 +1081,7 @@ break
 				}).catch((err) => m.reply('Gagal!'))
 			}
 			break
-			case 'group': case 'grup': case 'grupset': {
+			case 'group': case 'grub': case 'grup': case 'grupset': {
 				if (!m.isGroup) return m.reply(mess.group)
 				if (!m.isAdmin) return m.reply(mess.admin)
 				if (!m.isBotAdmin) return m.reply(mess.botAdmin)
@@ -3674,6 +3674,7 @@ profile = "https://b.top4top.io/p_3264jilg00.jpeg";
 │${setv} ${prefix}listonline
 │${setv} ${prefix}grupset
 │${setv} ${prefix}grup mute (on/off)
+│${setv} ${prefix}grup close/open
 │${setv} ${prefix}grup antilink (on/off)
 │${setv} ${prefix}grup welcome (on/off)
 │${setv} ${prefix}grup antivirtex (on/off)
