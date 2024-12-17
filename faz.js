@@ -1871,6 +1871,21 @@ break
     }, loadingSteps.length * 500); // Mulai setelah animasi loading selesai
 }
 break
+case 'wasted': {
+				try {
+					if (/jpg|jpeg|png/.test(mime)) {
+						m.reply(mess.wait)
+						let media = await (m.quoted ? m.quoted.download() : m.download())
+						let anu = await TelegraPh(media)
+						await faz.sendFileUrl(m.chat, 'https://some-random-api.com/canvas/wasted?avatar=' + anu, 'Nih Bro', m)
+					} else {
+						m.reply('Send Media yg ingin di Upload!')
+					}
+				} catch (e) {
+					m.reply('Server Canvas Sedang Offline!')
+				}
+			}
+			break
 			case 'trigger': case 'triggered': {
 				try {
 					if (/jpg|jpeg|png/.test(mime)) {
